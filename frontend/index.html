@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BetNaija - Premium Betting Experience</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <nav class="navbar glass-panel">
+        <div class="brand">BetNaija</div>
+        <div class="nav-links">
+            <a href="index.html">Home</a>
+            <a href="#features">Features</a>
+            <a href="login.html" class="btn btn-outline" id="nav-login-btn">Login</a>
+            <a href="login.html?mode=register" class="btn btn-primary" id="nav-register-btn">Sign Up</a>
+        </div>
+    </nav>
+
+    <main class="hero">
+        <div class="hero-content">
+            <h1>Experience the Thrill of Winning</h1>
+            <p>Join the most secure, advanced, and dynamic online betting platform in Nigeria. Instant deposits, fast payouts, and the best odds guaranteed.</p>
+            <div style="display: flex; gap: 1rem; justify-content: center; margin-top: 2rem;">
+                <a href="login.html?mode=register" class="btn btn-primary" style="font-size: 1.1rem; padding: 1rem 2rem;">Start Winning Today</a>
+                <a href="login.html" class="btn btn-outline" style="font-size: 1.1rem; padding: 1rem 2rem;">Sign In</a>
+            </div>
+        </div>
+    </main>
+
+    <script src="js/api.js"></script>
+    <script>
+        // Adjust navigation if logged in
+        if (isAuthenticated()) {
+            document.getElementById('nav-login-btn').style.display = 'none';
+            document.getElementById('nav-register-btn').textContent = 'Dashboard';
+            document.getElementById('nav-register-btn').href = getUserRole() === 'admin' ? 'admin.html' : 'dashboard.html';
+        }
+    </script>
+</body>
+</html>

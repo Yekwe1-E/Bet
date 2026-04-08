@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - BetNaija</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .metric-card {
+            padding: 1.5rem;
+            text-align: center;
+        }
+        .metric-value {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--accent-primary);
+            margin-top: 0.5rem;
+        }
+        .dashboard-grid {
+            grid-template-columns: 250px 1fr;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar glass-panel">
+        <a href="index.html" class="brand">BetNaija <span style="font-size:1rem; color:var(--warning);">[ADMIN]</span></a>
+        <div class="nav-links">
+            <button onclick="logout()" class="btn btn-outline" style="padding: 0.5rem 1rem;">Logout</button>
+        </div>
+    </nav>
+
+    <div class="container dashboard-grid" style="max-width: 1400px;">
+        <aside class="sidebar glass-panel">
+            <h3>Admin Menu</h3>
+            <ul class="sidebar-menu">
+                <li><a href="#" class="active" onclick="showTab('dashboard')">Overview</a></li>
+                <li><a href="#" onclick="showTab('users')">Manage Users</a></li>
+                <li><a href="#" onclick="showTab('events')">Manage Events</a></li>
+                <li><a href="#" onclick="showTab('withdrawals')">Withdrawals</a></li>
+            </ul>
+        </aside>
+
+        <main class="dashboard-content">
+            <div id="alert-container"></div>
+            
+            <!-- Dashboard Tab -->
+            <section id="tab-dashboard" class="tab-content">
+                <div class="bet-grid">
+                    <div class="glass-panel metric-card">
+                        <div style="color: var(--text-secondary);">Total Users</div>
+                        <div class="metric-value" id="metric-users">0</div>
+                    </div>
+                    <div class="glass-panel metric-card">
+                        <div style="color: var(--text-secondary);">Total Deposits</div>
+                        <div class="metric-value" id="metric-deposits">₦ 0</div>
+                    </div>
+                    <div class="glass-panel metric-card">
+                        <div style="color: var(--text-secondary);">Total Withdrawals</div>
+                        <div class="metric-value" id="metric-withdrawals">₦ 0</div>
+                    </div>
+                    <div class="glass-panel metric-card">
+                        <div style="color: var(--text-secondary);">Active Bets</div>
+                        <div class="metric-value" id="metric-bets">0</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Users Tab -->
+            <section id="tab-users" class="tab-content" style="display: none;">
+                <div class="glass-panel" style="padding: 1.5rem;">
+                    <h3>Platform Users</h3>
+                    <div class="table-container">
+                        <table id="users-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Role</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="users-body">
+                                <tr><td colspan="5" style="text-align: center;">Loading users...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Events Tab -->
+            <section id="tab-events" class="tab-content" style="display: none;">
+                <div class="glass-panel" style="padding: 1.5rem; margin-bottom: 2rem;">
+                    <h3>Create New Event</h3>
+                    <form id="create-event-form" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <div class="form-group">
+                            <label>Event Title</label>
+                            <input type="text" id="ev-title" class="form-control" placeholder="e.g. Arsenal vs Chelsea" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Category</label>
+                            <input type="text" id="ev-category" class="form-control" placeholder="e.g. Premier League" required>
+                        </div>
+                        <div class="form-group" style="grid-column: span 2; display: flex; gap: 1rem;">
+                            <div style="flex:1;">
+                                <label>Home Odds (1)</label>
+                                <input type="number" step="0.01" id="ev-odds-home" class="form-control" required>
+                            </div>
+                            <div style="flex:1;">
+                                <label>Draw Odds (X)</label>
+                                <input type="number" step="0.01" id="ev-odds-draw" class="form-control" required>
+                            </div>
+                            <div style="flex:1;">
+                                <label>Away Odds (2)</label>
+                                <input type="number" step="0.01" id="ev-odds-away" class="form-control" required>
+                            </div>
+                        </div>
+                        <div class="form-group" style="grid-column: span 2;">
+                            <button type="submit" class="btn btn-primary" id="ev-submit-btn">Create Event</button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="glass-panel" style="padding: 1.5rem;">
+                    <h3>Active Events</h3>
+                    <div class="table-container">
+                        <table id="admin-events-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Title</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="admin-events-body">
+                                <tr><td colspan="3" style="text-align: center;">Loading events...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Withdrawals Tab -->
+            <section id="tab-withdrawals" class="tab-content" style="display: none;">
+                <div class="glass-panel" style="padding: 1.5rem;">
+                    <h3>Withdrawal Requests</h3>
+                    <p style="color: var(--text-secondary); margin-bottom: 1rem;">Feature in development. Use raw API or manually resolve.</p>
+                    <div class="alert alert-warning">
+                        For demo purposes, managing withdrawals requires building an explicit backend fetch endpoint for pending requests to list here.
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Settle Event Modal -->
+    <div id="settle-modal" class="glass-panel auth-container" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 2000;">
+        <h3>Settle Event</h3>
+        <p style="color: var(--text-secondary); margin-bottom: 1rem;">Select the winning outcome.</p>
+        <input type="hidden" id="settle-event-id">
+        <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
+            <button class="btn btn-outline" style="flex: 1;" onclick="submitSettlement('home')">Home (1)</button>
+            <button class="btn btn-outline" style="flex: 1;" onclick="submitSettlement('draw')">Draw (X)</button>
+            <button class="btn btn-outline" style="flex: 1;" onclick="submitSettlement('away')">Away (2)</button>
+        </div>
+        <button class="btn btn-danger" style="width: 100%;" onclick="document.getElementById('settle-modal').style.display = 'none';">Cancel</button>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script src="js/admin.js"></script>
+</body>
+</html>

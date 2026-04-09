@@ -3,56 +3,80 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login / Sign Up - BetNaija</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <title>Login - BetNaija</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
-<body>
-    <nav class="navbar glass-panel">
-        <a href="index.html" class="brand">BetNaija</a>
-        <div class="nav-links">
-            <a href="index.html">Home</a>
-        </div>
-    </nav>
+<body class="auth-page">
+    <div class="auth-card glass animate-fade">
+        <center>
+            <a href="index.html" class="brand" style="justify-content: center; margin-bottom: 2rem;">BetNaija</a>
+        </center>
+        <h2 style="text-align: center; margin-bottom: 0.5rem;">Welcome Back</h2>
+        <p style="text-align: center; color: var(--text-muted); margin-bottom: 2rem;">Enter your credentials to access your account</p>
+        
+        <div id="alert-container"></div>
 
-    <div class="auth-container glass-panel">
-        <h2 id="auth-title">Welcome Back</h2>
-        <p style="color: var(--text-secondary); margin-bottom: 2rem;" id="auth-subtitle">Sign in to continue winning.</p>
-
-        <div id="alert-box" class="alert" style="display: none;"></div>
-
-        <form id="auth-form">
-            <div id="register-fields" style="display: none;">
-                <div class="form-group">
-                    <label for="name">Full Name</label>
-                    <input type="text" id="name" class="form-control" placeholder="John Doe">
-                </div>
-                <div class="form-group">
-                    <label for="phone">Phone Number</label>
-                    <input type="tel" id="phone" class="form-control" placeholder="08012345678">
-                </div>
-            </div>
-
-            <div class="form-group">
+        <form id="login-form">
+            <div class="input-group">
                 <label for="email">Email Address</label>
-                <input type="email" id="email" class="form-control" required placeholder="you@example.com">
+                <input type="email" id="email" class="input-field" placeholder="name@example.com" required>
             </div>
-            
-            <div class="form-group">
+            <div class="input-group">
                 <label for="password">Password</label>
-                <input type="password" id="password" class="form-control" required placeholder="••••••••">
+                <input type="password" id="password" class="input-field" placeholder="••••••••" required>
             </div>
-
             <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;" id="submit-btn">Sign In</button>
         </form>
 
-        <p style="margin-top: 2rem; color: var(--text-secondary);">
-            <span id="toggle-text">Don't have an account?</span> 
-            <a href="#" id="toggle-auth" style="font-weight: 600;">Sign Up</a>
+        <p style="text-align: center; margin-top: 2rem; color: var(--text-muted);">
+            Don't have an account? <a href="register.html" style="color: var(--primary); font-weight: 600;">Sign up</a>
         </p>
     </div>
 
     <script src="js/api.js"></script>
-    <script src="js/auth.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            requireGuest();
+            
+            const loginForm = document.getElementById('login-form');
+            const alertContainer = document.getElementById('alert-container');
+            const submitBtn = document.getElementById('submit-btn');
+
+            loginForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                const email = document.getElementById('email').value;
+                const password = document.getElementById('password').value;
+                
+                submitBtn.disabled = true;
+                submitBtn.innerText = 'Signing in...';
+                alertContainer.innerHTML = '';
+
+                try {
+                    const response = await fetchAPI('/auth/login', 'POST', { email, password });
+                    const data = response.data;
+                    
+                    localStorage.setItem('token', data.token);
+                    localStorage.setItem('role', data.role);
+                    localStorage.setItem('user', JSON.stringify({
+                        id: data.id,
+                        name: data.name,
+                        email: data.email,
+                        role: data.role
+                    }));
+
+                    if (data.role === 'admin') {
+                        window.location.href = 'admin.html';
+                    } else {
+                        window.location.href = 'dashboard.html';
+                    }
+                } catch (error) {
+                    alertContainer.innerHTML = `<div class="badge badge-danger" style="width: 100%; text-align: center; padding: 0.75rem; margin-bottom: 1rem;">${error.message}</div>`;
+                    submitBtn.disabled = false;
+                    submitBtn.innerText = 'Sign In';
+                }
+            });
+        });
+    </script>
 </body>
 </html>

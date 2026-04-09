@@ -1,4 +1,4 @@
-// admin.js - Handles Admin Panel logic
+// admin.js - Handles Admin Panel logic for premium UI
 
 document.addEventListener('DOMContentLoaded', () => {
     requireAdmin();
@@ -6,22 +6,35 @@ document.addEventListener('DOMContentLoaded', () => {
     loadMetrics();
     loadUsers();
     loadEvents();
+    loadWithdrawals();
     
     document.getElementById('create-event-form').addEventListener('submit', createEvent);
 });
 
 function showTab(tabName) {
     document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
-    document.querySelectorAll('.sidebar-menu a').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.sidebar-link').forEach(el => el.classList.remove('active'));
     
     document.getElementById(`tab-${tabName}`).style.display = 'block';
-    document.querySelector(`.sidebar-menu a[onclick="showTab('${tabName}')"]`).classList.add('active');
+    
+    const links = document.querySelectorAll('.sidebar-link');
+    links.forEach(link => {
+        if (link.getAttribute('onclick').includes(tabName)) {
+            link.classList.add('active');
+        }
+    });
+
+    if (tabName === 'dashboard') loadMetrics();
+    if (tabName === 'users') loadUsers();
+    if (tabName === 'events') loadEvents();
+    if (tabName === 'withdrawals') loadWithdrawals();
 }
 
 function showAlert(message, type = 'success') {
     const container = document.getElementById('alert-container');
-    container.innerHTML = `<div class="alert alert-${type}">${message}</div>`;
-    setTimeout(() => { container.innerHTML = ''; }, 3000);
+    const badgeClass = type === 'success' ? 'badge-won' : 'badge-lost';
+    container.innerHTML = `<div class="badge ${badgeClass}" style="width: 100%; text-align: center; padding: 1rem; margin-bottom: 1.5rem; font-size: 1rem; display: block;">${message}</div>`;
+    setTimeout(() => { container.innerHTML = ''; }, 4000);
 }
 
 // Metrics
@@ -47,10 +60,13 @@ async function loadUsers() {
         tbody.innerHTML = response.data.map(u => `
             <tr>
                 <td>#${u.id}</td>
-                <td>${u.name}</td>
-                <td>${u.email}</td>
-                <td><span class="badge ${u.role === 'admin' ? 'badge-warning' : 'badge-success'}">${u.role.toUpperCase()}</span></td>
-                <td><span class="badge ${u.is_blocked ? 'badge-danger' : 'badge-success'}">${u.is_blocked ? 'Blocked' : 'Active'}</span></td>
+                <td>
+                    <div style="font-weight: 700;">${u.name}</div>
+                    <div style="font-size: 0.8rem; color: var(--text-muted);">${u.email}</div>
+                </td>
+                <td><span class="badge ${u.role === 'admin' ? 'badge-pending' : 'badge-won'}">${u.role.toUpperCase()}</span></td>
+                <td><span class="badge ${u.is_blocked ? 'badge-lost' : 'badge-won'}">${u.is_blocked ? 'BLOCKED' : 'ACTIVE'}</span></td>
+                <td style="color: var(--text-dim);">${new Date(u.created_at).toLocaleDateString()}</td>
             </tr>
         `).join('');
     } catch (error) {
@@ -61,22 +77,26 @@ async function loadUsers() {
 // Events
 async function loadEvents() {
     try {
-        const response = await fetchAPI('/bet/events'); // Reuse public endpoint
+        const response = await fetchAPI('/bet/events'); 
         const tbody = document.getElementById('admin-events-body');
         
         const activeEvents = response.data.filter(e => e.status === 'active');
         
         if (activeEvents.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="3" style="text-align: center;">No active events.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: var(--text-dim);">No active betting markets found.</td></tr>';
             return;
         }
 
         tbody.innerHTML = activeEvents.map(e => `
             <tr>
-                <td>#${e.id}</td>
-                <td><strong>${e.title}</strong><br/>${e.category}</td>
+                <td style="font-family: monospace; color: var(--text-dim);">#${e.id}</td>
                 <td>
-                    <button class="btn btn-outline" style="padding: 0.25rem 0.5rem; font-size: 0.85rem;" onclick="openSettleModal(${e.id})">Settle Event</button>
+                    <div style="font-weight: 700;">${e.title}</div>
+                    <div style="font-size: 0.8rem; color: var(--primary); font-weight: 600;">${e.category.toUpperCase()}</div>
+                </td>
+                <td><span class="badge badge-won">LIVE / OPEN</span></td>
+                <td>
+                    <button class="btn btn-primary" style="padding: 0.5rem 1rem; font-size: 0.8rem;" onclick="openSettleModal(${e.id})">DECLARE RESULT</button>
                 </td>
             </tr>
         `).join('');
@@ -88,10 +108,11 @@ async function loadEvents() {
 async function createEvent(e) {
     e.preventDefault();
     const btn = document.getElementById('ev-submit-btn');
+    const originalText = btn.textContent;
     btn.disabled = true;
+    btn.textContent = 'PUBLISHING...';
 
     try {
-        // Create an arbitrary start time for now (tomorrow)
         const date = new Date();
         date.setDate(date.getDate() + 1);
         const startTime = date.toISOString().slice(0, 19).replace('T', ' ');
@@ -105,31 +126,74 @@ async function createEvent(e) {
             start_time: startTime
         });
 
-        showAlert('Event created successfully!');
+        showAlert('New market published successfully!');
         e.target.reset();
         loadEvents();
+        loadMetrics();
     } catch (error) {
         showAlert(error.message, 'error');
     } finally {
         btn.disabled = false;
+        btn.textContent = originalText;
     }
 }
 
 // Settle Event
 function openSettleModal(eventId) {
     document.getElementById('settle-event-id').value = eventId;
-    document.getElementById('settle-modal').style.display = 'block';
+    document.getElementById('settle-modal').style.display = 'flex';
 }
 
 async function submitSettlement(result) {
     const eventId = document.getElementById('settle-event-id').value;
     try {
         await fetchAPI(`/admin/events/${eventId}/settle`, 'POST', { result });
-        showAlert(`Event scheduled successfully as ${result.toUpperCase()}`);
+        showAlert(`Market settled as ${result.toUpperCase()}. Winnings distributed.`);
         document.getElementById('settle-modal').style.display = 'none';
         
         loadEvents();
-        loadMetrics(); // Update metrics as winnings might have changed
+        loadMetrics(); 
+    } catch (error) {
+        showAlert(error.message, 'error');
+    }
+}
+
+// Withdrawals
+async function loadWithdrawals() {
+    try {
+        // We'll need to check if this endpoint exists in adminController.js
+        // If not, we'll need to add it.
+        const response = await fetchAPI('/admin/withdrawals');
+        const tbody = document.getElementById('withdrawals-body');
+        
+        if (response.data.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-dim);">No pending withdrawal requests.</td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = response.data.map(w => `
+            <tr>
+                <td>#${w.id}</td>
+                <td>${w.user_name || 'User #' + w.user_id}</td>
+                <td style="font-weight: 700;">₦ ${parseFloat(w.amount).toLocaleString()}</td>
+                <td style="color: var(--text-dim);">${new Date(w.created_at).toLocaleDateString()}</td>
+                <td>
+                    <button class="btn btn-primary" style="padding: 0.4rem 0.8rem; font-size: 0.75rem;" onclick="handleWithdrawal(${w.id}, 'approved')">Approve</button>
+                    <button class="btn btn-ghost" style="padding: 0.4rem 0.8rem; font-size: 0.75rem;" onclick="handleWithdrawal(${w.id}, 'rejected')">Reject</button>
+                </td>
+            </tr>
+        `).join('');
+    } catch (error) {
+        console.error('Failed to load withdrawals:', error);
+    }
+}
+
+async function handleWithdrawal(id, status) {
+    try {
+        await fetchAPI(`/admin/withdrawals/${id}`, 'POST', { status });
+        showAlert(`Withdrawal ${status} successfully.`);
+        loadWithdrawals();
+        loadMetrics();
     } catch (error) {
         showAlert(error.message, 'error');
     }

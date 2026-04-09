@@ -1,6 +1,8 @@
 require('dotenv').config({ path: require('path').resolve(__dirname, '../.env') });
 const express = require('express');
 const cors = require('cors');
+const helmet = require('helmet');
+const compression = require('compression');
 const http = require('http');
 
 // Setup express app
@@ -8,6 +10,10 @@ const app = express();
 const server = http.createServer(app);
 
 // Global Middlewares
+app.use(helmet({
+    contentSecurityPolicy: false, // Disable for easier frontend integration of external scripts/fonts if needed
+}));
+app.use(compression());
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));

@@ -131,6 +131,25 @@ const handleWithdrawal = async (req, res) => {
     }
 };
 
+
+// @desc    Get all pending withdrawal requests
+// @route   GET /api/admin/withdrawals
+const getWithdrawals = async (req, res) => {
+    try {
+        const [requests] = await db.query(`
+            SELECT wr.*, u.name as user_name, u.email as user_email 
+            FROM withdrawal_requests wr 
+            JOIN users u ON wr.user_id = u.id 
+            WHERE wr.status = 'pending' 
+            ORDER BY wr.created_at DESC
+        `);
+        res.json({ success: true, data: requests });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false, message: 'Server error retrieving withdrawals' });
+    }
+};
+
 // @desc    Get dashboard metrics
 // @route   GET /api/admin/metrics
 const getAdminMetrics = async (req, res) => {
@@ -154,4 +173,4 @@ const getAdminMetrics = async (req, res) => {
     }
 }
 
-module.exports = { getUsers, createEvent, settleEvent, handleWithdrawal, getAdminMetrics };
+module.exports = { getUsers, createEvent, settleEvent, handleWithdrawal, getAdminMetrics, getWithdrawals };

@@ -3,120 +3,142 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>User Dashboard - BetNaija</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <title>Dashboard - BetNaija</title>
     <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
-    <nav class="navbar glass-panel">
+    <nav class="navbar glass">
         <a href="index.html" class="brand">BetNaija</a>
         <div class="nav-links">
-            <span id="user-greeting" style="font-weight: 500;">Hello, User</span>
-            <button onclick="logout()" class="btn btn-outline" style="padding: 0.5rem 1rem;">Logout</button>
+            <span id="user-greeting" style="font-weight: 500; color: var(--primary);">Hello, User</span>
+            <button onclick="logout()" class="btn btn-ghost">Logout</button>
         </div>
     </nav>
 
-    <div class="container dashboard-grid">
-        <aside class="sidebar glass-panel">
-            <h3>Dashboard</h3>
-            <ul class="sidebar-menu">
-                <li><a href="#" class="active" onclick="showTab('wallet')">My Wallet</a></li>
-                <li><a href="#" onclick="showTab('betting')">Place Bets</a></li>
-                <li><a href="#" onclick="showTab('history')">My Bets History</a></li>
-            </ul>
+    <div class="dashboard-container">
+        <aside class="sidebar glass">
+            <div class="sidebar-menu">
+                <a href="#" class="sidebar-link active" onclick="showTab('betting')">
+                    <i class="fas fa-futbol"></i> Sports Betting
+                </a>
+                <a href="#" class="sidebar-link" onclick="showTab('wallet')">
+                    <i class="fas fa-wallet"></i> My Wallet
+                </a>
+                <a href="#" class="sidebar-link" onclick="showTab('history')">
+                    <i class="fas fa-history"></i> Bet History
+                </a>
+            </div>
         </aside>
 
         <main class="dashboard-content">
             <div id="alert-container"></div>
-            
+
+            <!-- Betting Tab -->
+            <section id="tab-betting" class="tab-content animate-fade">
+                <div class="wallet-card">
+                    <div class="balance-label">Available Balance</div>
+                    <div class="balance-value" id="dashboard-balance">₦ 0.00</div>
+                    <div style="display: flex; gap: 1rem;">
+                        <button class="btn btn-primary" onclick="showTab('wallet')">Quick Deposit</button>
+                    </div>
+                </div>
+
+                <h2 style="margin-bottom: 2rem;">Top Football Matches</h2>
+                <div class="bet-grid" id="events-container">
+                    <!-- Dynamic Content -->
+                    <div style="grid-column: 1/-1; text-align: center; padding: 3rem;">
+                        <p style="color: var(--text-muted);">Loading events...</p>
+                    </div>
+                </div>
+            </section>
+
             <!-- Wallet Tab -->
-            <section id="tab-wallet" class="tab-content">
-                <div class="wallet-card glass-panel" style="border-radius: 16px;">
-                    <p style="color: var(--text-secondary); font-size: 1.1rem;">Total Balance</p>
-                    <div class="wallet-balance" id="wallet-balance">₦ 0.00</div>
-                    <div class="wallet-actions">
-                        <button class="btn btn-primary" onclick="openDepositModal()">Deposit Fund</button>
+            <section id="tab-wallet" class="tab-content animate-fade" style="display: none;">
+                <div class="wallet-card">
+                    <div class="balance-label">Total Balance</div>
+                    <div class="balance-value" id="wallet-balance-full">₦ 0.00</div>
+                    <div style="display: flex; gap: 1rem;">
+                        <button class="btn btn-primary" onclick="openDepositModal()">Deposit Funds</button>
                         <button class="btn btn-outline" onclick="openWithdrawModal()">Withdraw</button>
                     </div>
                 </div>
 
-                <div class="glass-panel" style="padding: 1.5rem;">
-                    <h3>Recent Transactions</h3>
-                    <div class="table-container">
-                        <table id="transactions-table">
-                            <thead>
-                                <tr>
-                                    <th>Date</th>
-                                    <th>Type</th>
-                                    <th>Amount</th>
-                                    <th>Status</th>
-                                </tr>
-                            </thead>
-                            <tbody id="transactions-body">
-                                <tr><td colspan="4" style="text-align: center;">Loading transactions...</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Betting Tab -->
-            <section id="tab-betting" class="tab-content" style="display: none;">
-                <div class="glass-panel" style="padding: 1.5rem; margin-bottom: 2rem;">
-                    <h3>Active Betting Events</h3>
-                    <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">Select your odds to place a bet.</p>
-                    <div class="bet-grid" id="events-container">
-                        <p>Loading events...</p>
-                    </div>
-                </div>
-                
-                <div id="bet-slip-container" class="glass-panel" style="padding: 1.5rem; display: none;">
-                    <h3>Bet Slip</h3>
-                    <div id="bet-slip-details" style="margin: 1rem 0;"></div>
-                    <div class="form-group">
-                        <label for="bet-amount">Stake Amount (₦)</label>
-                        <input type="number" id="bet-amount" class="form-control" min="100" placeholder="Minimum 100">
-                    </div>
-                    <p style="margin-bottom: 1rem; font-size: 1.1rem;">Potential Win: <strong id="potential-win" style="color: var(--accent-primary);">₦ 0.00</strong></p>
-                    <button class="btn btn-primary" id="place-bet-btn" style="width: 100%;">Place Bet</button>
+                <h3 style="margin-bottom: 1.5rem;">Recent Transactions</h3>
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Type</th>
+                                <th>Reference</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="transactions-body">
+                            <tr><td colspan="5" style="text-align: center;">Loading transactions...</td></tr>
+                        </tbody>
+                    </table>
                 </div>
             </section>
 
             <!-- History Tab -->
-            <section id="tab-history" class="tab-content" style="display: none;">
-                <div class="glass-panel" style="padding: 1.5rem;">
-                    <h3>My Bet History</h3>
-                    <div class="table-container">
-                        <table id="bets-table">
-                            <thead>
-                                <tr>
-                                    <th>Event</th>
-                                    <th>Stake</th>
-                                    <th>Odds</th>
-                                    <th>Potential Win</th>
-                                    <th>Status</th>
-                                </tr>
-                            </thead>
-                            <tbody id="bets-body">
-                                <tr><td colspan="5" style="text-align: center;">Loading bets...</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
+            <section id="tab-history" class="tab-content animate-fade" style="display: none;">
+                <h2 style="margin-bottom: 2rem;">My Bet History</h2>
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Event / Prediction</th>
+                                <th>Stake</th>
+                                <th>Odds</th>
+                                <th>Potential Win</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="bets-body">
+                            <tr><td colspan="5" style="text-align: center;">Loading bets...</td></tr>
+                        </tbody>
+                    </table>
                 </div>
             </section>
         </main>
     </div>
 
-    <!-- Simple Deposit Modal Strategy -->
-    <div id="deposit-modal" class="glass-panel auth-container" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 2000;">
-        <h3>Deposit Funds</h3>
-        <p style="color: var(--text-secondary); margin-bottom: 1rem;">Enter amount to deposit into your wallet.</p>
-        <div class="form-group">
-            <input type="number" id="deposit-amount" class="form-control" placeholder="Amount (₦)">
+    <!-- Bet Slip (Sticky Widget) -->
+    <div class="bet-slip glass animate-fade" id="bet-slip-container" style="display: none;">
+        <div class="bet-slip-header">
+            <span>BET SLIP</span>
+            <button onclick="closeBetSlip()" style="background: none; border: none; color: var(--bg-deep); cursor: pointer; font-size: 1.2rem;"><i class="fas fa-times"></i></button>
         </div>
-        <div style="display: flex; gap: 1rem;">
-            <button class="btn btn-primary" style="flex: 1;" onclick="submitDeposit()">Deposit via Mock Gateway</button>
-            <button class="btn btn-outline" style="flex: 1;" onclick="closeModals()">Cancel</button>
+        <div class="bet-slip-body">
+            <div id="bet-slip-details"></div>
+            <div class="input-group" style="margin-top: 1.5rem;">
+                <label>Enter Stake (₦)</label>
+                <input type="number" id="bet-amount" class="input-field" placeholder="Min 100" min="100">
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 1.5rem; padding: 1rem; background: rgba(0,0,0,0.2); border-radius: var(--radius-sm);">
+                <span style="color: var(--text-muted);">Potential Return</span>
+                <span style="color: var(--primary); font-weight: 800; font-size: 1.2rem;" id="potential-win">₦ 0.00</span>
+            </div>
+            <button class="btn btn-primary" id="place-bet-btn" style="width: 100%;">Place Bet Now</button>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <div id="deposit-modal" class="modal-overlay">
+        <div class="modal-content animate-fade">
+            <h3 style="margin-bottom: 1rem;">Deposit Funds</h3>
+            <p style="color: var(--text-muted); margin-bottom: 2rem;">Top up your wallet instantly using our secure mock gateway.</p>
+            <div class="input-group">
+                <label>Amount to Deposit (₦)</label>
+                <input type="number" id="deposit-amount" class="input-field" placeholder="1000">
+            </div>
+            <div style="display: flex; gap: 1rem;">
+                <button class="btn btn-primary" style="flex: 2;" onclick="submitDeposit()">Confirm Deposit</button>
+                <button class="btn btn-outline" style="flex: 1;" onclick="closeModals()">Cancel</button>
+            </div>
         </div>
     </div>
 

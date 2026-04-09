@@ -3,40 +3,90 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BetNaija - Premium Betting Experience</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <title>BetNaija - Ultimate Betting Experience</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-    <nav class="navbar glass-panel">
-        <div class="brand">BetNaija</div>
+    <nav class="navbar glass">
+        <a href="index.html" class="brand">BetNaija</a>
         <div class="nav-links">
-            <a href="index.html">Home</a>
             <a href="#features">Features</a>
-            <a href="login.html" class="btn btn-outline" id="nav-login-btn">Login</a>
-            <a href="login.html?mode=register" class="btn btn-primary" id="nav-register-btn">Sign Up</a>
+            <a href="#how-it-works">How It Works</a>
+            <div id="auth-buttons">
+                <!-- Will be populated by JS -->
+                <a href="login.html" class="btn btn-outline">Login</a>
+                <a href="register.html" class="btn btn-primary">Join Now</a>
+            </div>
         </div>
     </nav>
 
-    <main class="hero">
-        <div class="hero-content">
-            <h1>Experience the Thrill of Winning</h1>
-            <p>Join the most secure, advanced, and dynamic online betting platform in Nigeria. Instant deposits, fast payouts, and the best odds guaranteed.</p>
-            <div style="display: flex; gap: 1rem; justify-content: center; margin-top: 2rem;">
-                <a href="login.html?mode=register" class="btn btn-primary" style="font-size: 1.1rem; padding: 1rem 2rem;">Start Winning Today</a>
-                <a href="login.html" class="btn btn-outline" style="font-size: 1.1rem; padding: 1rem 2rem;">Sign In</a>
+    <header class="hero">
+        <div class="animate-fade">
+            <h1>Experience the <span>Future</span> of Betting</h1>
+            <p>Join thousands of winners on the most secure and vibrant betting platform. Instant payouts, competitive odds, and 24/7 live action.</p>
+            <div style="display: flex; gap: 1rem; justify-content: center;">
+                <a href="register.html" class="btn btn-primary" style="padding: 1rem 2.5rem; font-size: 1.1rem;">Start Winning Today</a>
+                <a href="login.html" class="btn btn-outline" style="padding: 1rem 2.5rem; font-size: 1.1rem;">View Markets</a>
             </div>
         </div>
-    </main>
+    </header>
+
+    <section class="container" style="padding: 4rem 5%;">
+        <h2 style="text-align: center; margin-bottom: 3rem; font-size: 2.5rem;">Live & Upcoming Matches</h2>
+        <div class="bet-grid" id="featured-events">
+            <!-- Populated by JS -->
+            <div style="grid-column: 1/-1; text-align: center; padding: 3rem;">
+                <p style="color: var(--text-muted);">Loading live markets...</p>
+            </div>
+        </div>
+    </section>
+
+    <footer style="padding: 4rem 5%; border-top: 1px solid var(--border); text-align: center; margin-top: auto;">
+        <div class="brand" style="justify-content: center; margin-bottom: 1.5rem;">BetNaija</div>
+        <p style="color: var(--text-dim);">© 2026 BetNaija Gaming. 18+ Please gamble responsibly.</p>
+    </footer>
 
     <script src="js/api.js"></script>
     <script>
-        // Adjust navigation if logged in
-        if (isAuthenticated()) {
-            document.getElementById('nav-login-btn').style.display = 'none';
-            document.getElementById('nav-register-btn').textContent = 'Dashboard';
-            document.getElementById('nav-register-btn').href = getUserRole() === 'admin' ? 'admin.html' : 'dashboard.html';
-        }
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Check auth for button display
+            const authBtns = document.getElementById('auth-buttons');
+            if (isAuthenticated()) {
+                const role = getUserRole();
+                const dashboardUrl = role === 'admin' ? 'admin.html' : 'dashboard.html';
+                authBtns.innerHTML = `
+                    <a href="${dashboardUrl}" class="btn btn-outline">Dashboard</a>
+                    <button onclick="logout()" class="btn btn-ghost">Logout</button>
+                `;
+            }
+
+            // Fetch live events for landing page
+            try {
+                const response = await fetch('/api/bet/events');
+                const result = await response.json();
+                if (result.success) {
+                    const container = document.getElementById('featured-events');
+                    if (result.data.length === 0) {
+                        container.innerHTML = '<p style="grid-column: 1/-1;">No active matches at the moment. Check back later!</p>';
+                        return;
+                    }
+                    container.innerHTML = result.data.slice(0, 6).map(event => `
+                        <div class="bet-card animate-fade">
+                            <div class="event-category">${event.category}</div>
+                            <div class="event-title">${event.title}</div>
+                            <div class="odds-row">
+                                <div class="odds-btn"><span>Home</span>${event.odds_home}</div>
+                                <div class="odds-btn"><span>Draw</span>${event.odds_draw}</div>
+                                <div class="odds-btn"><span>Away</span>${event.odds_away}</div>
+                            </div>
+                            <a href="login.html" class="btn btn-outline" style="width: 100%; margin-top: 1.5rem; font-size: 0.85rem;">Login to Place Bet</a>
+                        </div>
+                    `).join('');
+                }
+            } catch (err) {
+                console.error('Failed to fetch events:', err);
+            }
+        });
     </script>
 </body>
 </html>

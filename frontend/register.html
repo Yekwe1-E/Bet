@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Join BetNaija - Create Account</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="auth-page">
+    <div class="auth-card glass animate-fade" style="max-width: 500px;">
+        <center>
+            <a href="index.html" class="brand" style="justify-content: center; margin-bottom: 2rem;">BetNaija</a>
+        </center>
+        <h2 style="text-align: center; margin-bottom: 0.5rem;">Create Account</h2>
+        <p style="text-align: center; color: var(--text-muted); margin-bottom: 2rem;">Start your winning journey today</p>
+        
+        <div id="alert-container"></div>
+
+        <form id="register-form">
+            <div class="input-group">
+                <label for="name">Full Name</label>
+                <input type="text" id="name" class="input-field" placeholder="John Doe" required>
+            </div>
+            <div class="input-row" style="display: flex; gap: 1rem;">
+                <div class="input-group" style="flex: 1;">
+                    <label for="email">Email Address</label>
+                    <input type="email" id="email" class="input-field" placeholder="name@example.com" required>
+                </div>
+                <div class="input-group" style="flex: 1;">
+                    <label for="phone">Phone Number</label>
+                    <input type="text" id="phone" class="input-field" placeholder="080 123 4567" required>
+                </div>
+            </div>
+            <div class="input-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" class="input-field" placeholder="Minimum 6 characters" required minlength="6">
+            </div>
+            <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;" id="submit-btn">Create Free Account</button>
+        </form>
+
+        <p style="text-align: center; margin-top: 2rem; color: var(--text-muted);">
+            Already have an account? <a href="login.html" style="color: var(--primary); font-weight: 600;">Sign in</a>
+        </p>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            requireGuest();
+            
+            const registerForm = document.getElementById('register-form');
+            const alertContainer = document.getElementById('alert-container');
+            const submitBtn = document.getElementById('submit-btn');
+
+            registerForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                const name = document.getElementById('name').value;
+                const email = document.getElementById('email').value;
+                const phone = document.getElementById('phone').value;
+                const password = document.getElementById('password').value;
+                
+                submitBtn.disabled = true;
+                submitBtn.innerText = 'Creating account...';
+                alertContainer.innerHTML = '';
+
+                try {
+                    const regResponse = await fetchAPI('/auth/register', 'POST', { name, email, phone, password });
+                    
+                    // Auto login after registration
+                    const loginResponse = await fetchAPI('/auth/login', 'POST', { email, password });
+                    const data = loginResponse.data;
+                    
+                    localStorage.setItem('token', data.token);
+                    localStorage.setItem('role', data.role);
+                    localStorage.setItem('user', JSON.stringify({
+                        id: data.id,
+                        name: data.name,
+                        email: data.email,
+                        role: data.role
+                    }));
+
+                    window.location.href = 'dashboard.html';
+                } catch (error) {
+                    alertContainer.innerHTML = `<div class="badge badge-danger" style="width: 100%; text-align: center; padding: 0.75rem; margin-bottom: 1rem;">${error.message}</div>`;
+                    submitBtn.disabled = false;
+                    submitBtn.innerText = 'Create Free Account';
+                }
+            });
+        });
+    </script>
+</body>
+</html>
